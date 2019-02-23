@@ -25,7 +25,7 @@ func Hash(b []byte) (string, error) {
 	shaHash := hasher.Sum(nil)
 	preHash := []byte{hashAlg, hashLen}
 	hash := append(preHash, shaHash[:]...)
-	return mhopts.Encode("base58", hash)
+	return mhopts.Encode(hashEnc, hash)
 }
 
 // isFile checks if a path exists and contains a file, not a directory.
@@ -42,4 +42,14 @@ func isFile(path string) bool {
 		}
 	}()
 	return file.Mode().IsRegular()
+}
+
+// UnHash retuns the original hash given a base58-encoded multihash
+func UnHash(hash string) ([]byte, error) {
+	multihash, err := mhopts.Decode(hashEnc, hash)
+	if err != nil {
+		return nil, err
+	}
+	// extract algorithm and key lenght
+	return multihash[2:], nil
 }
