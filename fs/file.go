@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 )
 
 // File represents a file in a Unix system.
@@ -60,6 +61,11 @@ func NewFileFromPath(path string) (*File, error) {
 
 	f := File{Blocks: blocks, Hash: hash, Path: path, Perm: info.Mode()}
 	return &f, nil
+}
+
+// Name returns the filename of the file
+func (f *File) Name() string {
+	return filepath.Base(f.Path)
 }
 
 func (f *File) String() string {

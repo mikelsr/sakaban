@@ -2,6 +2,7 @@ package fs
 
 import (
 	"encoding/json"
+	"path/filepath"
 	"testing"
 )
 
@@ -30,6 +31,15 @@ func TestNewFileFromPath(t *testing.T) {
 	// unreadable file
 	if _, err = NewFileFromPath(testFailFile); err == nil {
 		t.Fatalf("created valid file from unreadable file")
+	}
+}
+
+func TestFile_Name(t *testing.T) {
+	f := File{Path: muffinPath}
+	expected := filepath.Base(muffinPath)
+	if f.Name() != expected {
+		t.Fatalf("mismatched file names '%s' and '%s' (expected)",
+			f.Name(), expected)
 	}
 }
 
