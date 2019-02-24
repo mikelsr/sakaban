@@ -10,11 +10,11 @@ type Block struct {
 
 // Equals compares the hashes of two blocks.
 func (b *Block) Equals(b1 *Block) bool {
-	hash1, err := Hash(b.Content)
+	hash1, err := MultiHash(b.Content)
 	if err != nil {
 		return false
 	}
-	hash2, err := Hash(b1.Content)
+	hash2, err := MultiHash(b1.Content)
 	if err != nil || hash1 != hash2 {
 		return false
 	}
@@ -23,7 +23,7 @@ func (b *Block) Equals(b1 *Block) bool {
 
 // NewBlockFromBytes creates a Block given it's content in bytes
 func NewBlockFromBytes(content []byte) (*Block, error) {
-	hash, err := Hash(content)
+	hash, err := MultiHash(content)
 	if err != nil {
 		return nil, err
 	}

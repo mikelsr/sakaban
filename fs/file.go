@@ -37,7 +37,7 @@ func NewFileFromPath(path string) (*File, error) {
 		return nil, err
 	}
 
-	hash, err := Hash(content)
+	hash, err := MultiHash(content)
 	if err != nil {
 		return nil, err
 	}

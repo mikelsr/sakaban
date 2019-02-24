@@ -17,17 +17,6 @@ func BlockAmount(fileSize int64, blockSize int64) int {
 	return n + 1
 }
 
-// Hash creates a multihash using the sha256 algorithm,
-// then encodes it in base58.
-func Hash(b []byte) (string, error) {
-	hasher := sha256.New()
-	hasher.Write(b)
-	shaHash := hasher.Sum(nil)
-	preHash := []byte{hashAlg, hashLen}
-	hash := append(preHash, shaHash[:]...)
-	return mhopts.Encode(hashEnc, hash)
-}
-
 // isFile checks if a path exists and contains a file, not a directory.
 func isFile(path string) bool {
 	file, err := os.Stat(path)
@@ -42,6 +31,22 @@ func isFile(path string) bool {
 		}
 	}()
 	return file.Mode().IsRegular()
+}
+
+// MultiHash creates a multihash using the sha256 algorithm,
+// then encodes it in base58.
+func MultiHash(b []byte) (string, error) {
+	shaHash := SimpleHash(b)
+	preHash := []byte{hashAlg, hashLen}
+	hash := append(preHash, shaHash[:]...)
+	return mhopts.Encode(hashEnc, hash)
+}
+
+// SimpleHash creates a sha256 hash of b
+func SimpleHash(b []byte) []byte {
+	hasher := sha256.New()
+	hasher.Write(b)
+	return hasher.Sum(nil)
 }
 
 // UnHash retuns the original hash given a base58-encoded multihash
