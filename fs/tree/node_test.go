@@ -128,14 +128,12 @@ func TestFromNode(t *testing.T) {
 	sn := FromNode(root, hashToString)
 	if sn.Hash != hashToString(root.Hash()) {
 		t.Fatalf("Serialized and original hashes do not match %s %s",
-			sn.PreHash, string(hashToString(root.PreHash())),
-		)
+			sn.PreHash, string(hashToString(root.PreHash())))
 	}
 
 	if sn.Subnodes[0].Subnodes[0].Hash != hashToString(a1.Hash()) {
 		t.Fatalf("Serialized and original hashes do not match %s %s",
-			sn.Subnodes[0].Subnodes[0].Hash, hashToString(a1.Hash()),
-		)
+			sn.Subnodes[0].Subnodes[0].Hash, hashToString(a1.Hash()))
 	}
 
 	// test SerializableNode.JSON()
