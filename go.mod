@@ -1,3 +1,5 @@
 module bitbucket.org/mikelsr/sakaban
 
-require github.com/multiformats/go-multihash v1.0.10
+go 1.12
+
+require github.com/multiformats/go-multihash v0.0.1
