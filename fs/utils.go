@@ -1,8 +1,17 @@
 package fs
 
 import (
+	"crypto/sha256"
+
 	mhopts "github.com/multiformats/go-multihash/opts"
 )
+
+// Hash creates a sha256 hash of data
+func Hash(data []byte) []byte {
+	hasher := sha256.New()
+	hasher.Write(data)
+	return hasher.Sum(nil)
+}
 
 // MultiHash creates a multihash using the sha256 algorithm,
 // then encodes it in base58

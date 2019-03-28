@@ -6,6 +6,7 @@ import "bitbucket.org/mikelsr/sakaban/fs/tree"
 // File represents a file as an implementation of tree.Node
 type File struct {
 	content []byte // content of the file
+	prehash []byte // prehash of the file
 	name    string
 }
 
@@ -14,17 +15,15 @@ func (f File) Name() string {
 	return f.name
 }
 
-// PreHash returns the SHA 256 hash of the content of the file
+// PreHash returns the hash of the content of the file
 func (f File) PreHash() []byte {
-	hasher := sha256.New()
-	hasher.Write(f.content)
-	return hasher.Sum(nil)
+	return f.prehash
 }
 
 // Hash returns the hash of combination of content and name of the file
 func (f File) Hash() []byte {
 	hasher := sha256.New()
-	hasher.Write(f.content)
+	hasher.Write(f.PreHash())
 	hasher.Write([]byte(f.Name()))
 	return hasher.Sum(nil)
 }
