@@ -2,6 +2,8 @@ package fs
 
 import (
 	"crypto/sha256"
+	"io/ioutil"
+	"path/filepath"
 
 	"bitbucket.org/mikelsr/sakaban/fs/tree"
 )
@@ -39,4 +41,15 @@ func (f File) IsDir() bool {
 // Subnodes returns a nil pointer
 func (f File) Subnodes() []tree.Node {
 	return nil
+}
+
+// MakeFile creates a File given a valid path
+func MakeFile(path string) (*File, error) {
+	content, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	basename := filepath.Base(path)
+	prehash := Hash(content)
+	return &File{name: basename, content: content, prehash: prehash}, nil
 }
