@@ -1,7 +1,10 @@
 package fs
 
-import "crypto/sha256"
-import "bitbucket.org/mikelsr/sakaban/fs/tree"
+import (
+	"crypto/sha256"
+
+	"bitbucket.org/mikelsr/sakaban/fs/tree"
+)
 
 // File represents a file as an implementation of tree.Node
 type File struct {
@@ -28,7 +31,7 @@ func (f File) Hash() []byte {
 	return hasher.Sum(nil)
 }
 
-// IsDir retuns false
+// IsDir always retuns false
 func (f File) IsDir() bool {
 	return false
 }
