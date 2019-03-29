@@ -45,7 +45,7 @@ func (d Dir) Subnodes() []tree.Node {
 }
 
 // Sort alphabetically sorts the subnodes of d
-func (d Dir) Sort() {
+func (d *Dir) Sort() {
 	sort.Slice(d.subnodes, func(i, j int) bool {
 		return d.subnodes[i].Name() < d.subnodes[j].Name()
 	})
