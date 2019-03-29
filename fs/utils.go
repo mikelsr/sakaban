@@ -2,7 +2,10 @@ package fs
 
 import (
 	"crypto/sha256"
+	"fmt"
+	"strings"
 
+	"bitbucket.org/mikelsr/sakaban/fs/tree"
 	mhopts "github.com/multiformats/go-multihash/opts"
 )
 
@@ -33,4 +36,17 @@ func UnHash(hash string) ([]byte, error) {
 	}
 	// extract algorithm and key lenght
 	return multihash[2:], nil
+}
+
+// SprintTree is used to recursively print a tree
+func SprintTree(t tree.Node, tabLvl int) string {
+	var str strings.Builder
+	tab := strings.Repeat("\t", tabLvl)
+	str.WriteString(
+		fmt.Sprintf("%s%s: %s\n", tab, t.Name(), MultiHash(t.Hash())))
+
+	for _, subnode := range t.Subnodes() {
+		str.WriteString(SprintTree(subnode, tabLvl+1))
+	}
+	return str.String()
 }
