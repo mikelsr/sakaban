@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"reflect"
 	"testing"
 
 	"bitbucket.org/mikelsr/sakaban/fs/tree"
@@ -78,6 +80,24 @@ func TestMakeTree(t *testing.T) {
 	if !bytes.Equal(expectedHash, actualHash) {
 		t.Fatalf("mismatched hashes '%x' and '%x' (expected)",
 			actualHash, expectedHash)
+	}
+
+	copypath := filepath.Join(testDir, "maketree", "y")
+	exec.Command("cp", "-rf", rootpath, copypath).Run()
+
+	subTree1, err := MakeTree(filepath.Join(rootpath, "b"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	subTree2, err := MakeTree(filepath.Join(copypath, "b"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !reflect.DeepEqual(subTree1, subTree2) ||
+		!bytes.Equal(subTree1.Hash(), subTree2.Hash()) {
+		t.Fatalf("trees differ\ntree 1:\n%s tree2:\n%s",
+			SprintTree(subTree1, 0), SprintTree(subTree2, 0))
 	}
 
 	// create unreadable file
