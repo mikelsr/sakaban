@@ -1,0 +1,36 @@
+image: "golang:alpine"
+
+variables:
+  PROJECT_PATH: /usr/local/go/src/gitlab.com/mikelsr
+  PACKAGE_PATH: ${PROJECT_PATH}/sakaban
+
+before_script:
+  - export GO111MODULE=on
+  - which go
+  - go version
+  - apk add --no-cache gcc git libc-dev
+  - mkdir -p ${PROJECT_PATH}
+  - ln -sf ${CI_PROJECT_DIR} ${PACKAGE_PATH}
+  - cd ${PACKAGE_PATH}
+
+stages:
+  - dep
+  - test
+#  - build
+
+verify_dep:
+  stage: dep
+  script:
+    - go mod download
+    - go mod verify
+
+run_test:
+  stage: test
+  script:
+    #- go test -cover -v ./...
+    - go test $(go list ./... | grep -v /vendor/) -v -coverprofile .testCoverage.txt
+
+#build_project:
+#  stage: build
+#  script:
+#    - go build
