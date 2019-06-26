@@ -16,7 +16,6 @@ before_script:
 stages:
   - dep
   - test
-#  - build
 
 verify_dep:
   stage: dep
@@ -27,10 +26,4 @@ verify_dep:
 run_test:
   stage: test
   script:
-    #- go test -cover -v ./...
     - go test $(go list ./... | grep -v /vendor/) -v -coverprofile .testCoverage.txt
-
-#build_project:
-#  stage: build
-#  script:
-#    - go build
