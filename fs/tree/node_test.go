@@ -28,8 +28,9 @@ type treeNode struct {
 
 // leafNode represents a test leaf node
 type leafNode struct {
-	name    string
-	prehash []byte
+	name     string
+	hash     []byte
+	subnodes []Node
 }
 
 // Name of the tree
@@ -43,7 +44,7 @@ func (l leafNode) Name() string {
 }
 
 // PreHash returns the hash of the content of the tree
-func (t treeNode) PreHash() []byte {
+func (t treeNode) Hash() []byte {
 	hashBytes := []byte{}
 	for _, subnode := range t.Subnodes() {
 		hashBytes = append(hashBytes, subnode.Hash()...)
@@ -51,19 +52,9 @@ func (t treeNode) PreHash() []byte {
 	return hashFn(hashBytes)
 }
 
-// PreHash returns the hash of the content of the leaf
-func (l leafNode) PreHash() []byte {
-	return l.prehash
-}
-
-// Hash of the content and name of the tree
-func (t treeNode) Hash() []byte {
-	return hashFn(append(t.PreHash(), []byte(t.name)...))
-}
-
-// Hash of the content and name of the leaf
+// Hash returns the hash of the content of the leaf
 func (l leafNode) Hash() []byte {
-	return hashFn(append(l.prehash, []byte(l.name)...))
+	return l.hash
 }
 
 // IsDir returns true
@@ -74,6 +65,16 @@ func (t treeNode) IsDir() bool {
 // IsDir returns false
 func (l leafNode) IsDir() bool {
 	return false
+}
+
+// IsFile returns false
+func (t treeNode) IsFile() bool {
+	return false
+}
+
+// IsFile returns false
+func (l leafNode) IsFile() bool {
+	return true
 }
 
 // Subnodes returns the subnodes of the tree
@@ -105,12 +106,12 @@ func TestFromNode(t *testing.T) {
 	rand.Read(leafContent2)
 
 	a1 := leafNode{
-		name:    "a1.raw",
-		prehash: hashFn(leafContent1),
+		name: "a1.raw",
+		hash: hashFn(leafContent1),
 	}
 	a2 := leafNode{
-		name:    "a2.raw",
-		prehash: hashFn(leafContent1),
+		name: "a2.raw",
+		hash: hashFn(leafContent1),
 	}
 	a := treeNode{
 		name:     "a",
@@ -128,12 +129,7 @@ func TestFromNode(t *testing.T) {
 	sn := FromNode(root, hashToString)
 	if sn.Hash != hashToString(root.Hash()) {
 		t.Fatalf("Serialized and original hashes do not match %s %s",
-			sn.PreHash, string(hashToString(root.PreHash())))
-	}
-
-	if sn.Subnodes[0].Subnodes[0].Hash != hashToString(a1.Hash()) {
-		t.Fatalf("Serialized and original hashes do not match %s %s",
-			sn.Subnodes[0].Subnodes[0].Hash, hashToString(a1.Hash()))
+			sn.Hash, string(hashToString(root.Hash())))
 	}
 
 	// test SerializableNode.JSON()
