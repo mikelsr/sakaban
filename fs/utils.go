@@ -3,6 +3,7 @@ package fs
 import (
 	"crypto/sha256"
 	"fmt"
+	"math"
 	"strings"
 
 	mhopts "github.com/multiformats/go-multihash/opts"
@@ -36,6 +37,11 @@ func UnHash(hash string) ([]byte, error) {
 	}
 	// extract algorithm and key lenght
 	return multihash[2:], nil
+}
+
+// blockNumber calculates the number of block a file is split to
+func blocksInFile(contentSize int) int {
+	return int(math.Ceil(float64(contentSize) / float64(blockSize)))
 }
 
 // sprintTree is used to recursively print a tree

@@ -47,6 +47,15 @@ func TestUnHash(t *testing.T) {
 	}
 }
 
+func TestBlocksInFile(t *testing.T) {
+	contentSize := 1001 // kB / 500kB per block -> 3 blocks
+	expected := 3
+	actual := blocksInFile(contentSize)
+	if actual != expected {
+		t.Fatalf("expected '%d' got '%d'", expected, actual)
+	}
+}
+
 func TestSprintTree(t *testing.T) {
 	content := []byte{2, 1, 1, 3}
 	x := File{name: "x", hash: Hash(content)}

@@ -19,7 +19,7 @@ func (b Block) Name() string {
 // Hash of the content of the block
 func (b Block) Hash() []byte {
 	if b.hash == nil {
-		// TODO
+		b.hash = Hash(b.content)
 	}
 	return b.hash
 }
