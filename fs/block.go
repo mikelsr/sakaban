@@ -6,9 +6,8 @@ import (
 
 // Block is the implementation of the block node
 type Block struct {
-	index   string // index of the block in the file
-	content []byte // content of the block
-	hash    []byte // precalculated hash used for optimization
+	index string // index of the block in the file
+	hash  []byte // precalculated hash used for optimization
 }
 
 // Name returns the index of the block
@@ -18,9 +17,6 @@ func (b Block) Name() string {
 
 // Hash of the content of the block
 func (b Block) Hash() []byte {
-	if b.hash == nil {
-		b.hash = Hash(b.content)
-	}
 	return b.hash
 }
 
