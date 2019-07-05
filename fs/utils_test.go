@@ -68,3 +68,63 @@ func TestSprintTree(t *testing.T) {
 			expected, actual)
 	}
 }
+
+func TestMakeFile(t *testing.T) {
+	// file containing two blocks
+	n := int(float64(blockSize) * 1.5)
+	fileContent := make([]byte, n)
+	// bits of first block to 0, second block to 1
+	for i := blockSize; i < n; i++ {
+		fileContent[i] = 0xFF
+	}
+
+	fileName := "x"
+	blockN := 2
+
+	// call makeFile
+	f, err := makeFile(fileName, fileContent)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// check number of blocks
+	if len(f.Subnodes()) != blockN {
+		t.Fatalf("mismatched subnode len: expected '%d' got '%d'",
+			blockN, len(f.Subnodes()))
+	}
+
+	block1 := f.Subnodes()[0]
+	block2 := f.Subnodes()[1]
+
+	// check names and hashes of file and blocks
+	// calculate hashes of both bloks and of file
+	if fileName != f.Name() {
+		t.Fatalf("mismatched names: expected '%s' for '%s'",
+			fileName, f.Name())
+	}
+	fileHash := Hash(fileContent)
+	if !bytes.Equal(fileHash, f.Hash()) {
+		t.Fatalf("mismatched file hashes: expected '%x' got '%x'",
+			fileHash, f.Hash())
+	}
+
+	if "0" != block1.Name() {
+		t.Fatalf("mismatched names: expected '%s' got '%s'",
+			"0", block1.Name())
+	}
+	block1Hash := Hash(fileContent[:blockSize])
+	if !bytes.Equal(block1Hash, block1.Hash()) {
+		t.Fatalf("mismatched file hashes: expected '%x' got '%x'",
+			block1Hash, block1.Hash())
+	}
+
+	if "1" != block2.Name() {
+		t.Fatalf("mismatched names: expected '%s' got '%s'",
+			"1", block2.Name())
+	}
+	block2Hash := Hash(fileContent[blockSize:])
+	if !bytes.Equal(block2Hash, block2.Hash()) {
+		t.Fatalf("mismatched file hashes: expected '%x' got '%x'",
+			block2Hash, block2.Hash())
+	}
+
+}
