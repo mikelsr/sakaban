@@ -3,7 +3,10 @@ package fs
 import (
 	"bytes"
 	"crypto/sha256"
+	"io/ioutil"
 	"log"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"gitlab.com/mikelsr/sakaban/fs/tree"
@@ -60,8 +63,7 @@ func TestSprintTree(t *testing.T) {
 	content := []byte{2, 1, 1, 3}
 	x := File{name: "x", hash: Hash(content)}
 	a := Dir{name: "a", subnodes: []tree.Node{x}}
-	expected := `a: QmYxH366TNoD7rwiSujCfrT648MoXhUtWf3wh9TrouWAZx
-	x: QmWCMyGmbnwnEREqsvS924UuHVimBdPzTpCEdUdP8ecrkV` + "\n"
+	expected := string(readGolden(t, "testsprinttree.golden.tree"))
 	actual := sprintTree(a, 0)
 	if actual != expected {
 		t.Fatalf("mismatched strings\nExpected:\n%s\nGot:\n%s",
@@ -78,53 +80,40 @@ func TestMakeFile(t *testing.T) {
 		fileContent[i] = 0xFF
 	}
 
-	fileName := "x"
-	blockN := 2
-
 	// call makeFile
-	f, err := makeFile(fileName, fileContent)
+	f, err := makeFile("x", fileContent)
 	if err != nil {
 		t.Fatal(err)
 	}
-	// check number of blocks
-	if len(f.Subnodes()) != blockN {
-		t.Fatalf("mismatched subnode len: expected '%d' got '%d'",
-			blockN, len(f.Subnodes()))
+	expected := string(readGolden(t, "testmakefile.golden.tree"))
+	actual := sprintTree(f, 0)
+	if actual != expected {
+		t.Fatalf("mismatched trees:\nactual:\n%s\nexpected:\n%s",
+			actual, expected)
 	}
+}
 
-	block1 := f.Subnodes()[0]
-	block2 := f.Subnodes()[1]
+func TestMakeDir(t *testing.T) {
+	dirName := "testmakedir"
+	subDirName := "subdir"
+	fileName := "testfile"
+	n := int(float64(blockSize) * 1.5)
+	fileContent := make([]byte, n)
 
-	// check names and hashes of file and blocks
-	// calculate hashes of both bloks and of file
-	if fileName != f.Name() {
-		t.Fatalf("mismatched names: expected '%s' for '%s'",
-			fileName, f.Name())
-	}
-	fileHash := Hash(fileContent)
-	if !bytes.Equal(fileHash, f.Hash()) {
-		t.Fatalf("mismatched file hashes: expected '%x' got '%x'",
-			fileHash, f.Hash())
-	}
+	os.Mkdir(filepath.Join(testDir, dirName), permDir)
+	os.Mkdir(filepath.Join(testDir, dirName, subDirName), permDir)
+	ioutil.WriteFile(filepath.Join(testDir, dirName, fileName),
+		fileContent, permFile)
 
-	if "0" != block1.Name() {
-		t.Fatalf("mismatched names: expected '%s' got '%s'",
-			"0", block1.Name())
+	d, err := makeDir(filepath.Join(testDir, dirName))
+	if err != nil {
+		t.Fatal(err)
 	}
-	block1Hash := Hash(fileContent[:blockSize])
-	if !bytes.Equal(block1Hash, block1.Hash()) {
-		t.Fatalf("mismatched file hashes: expected '%x' got '%x'",
-			block1Hash, block1.Hash())
-	}
+	expected := string(readGolden(t, "testmakedir.golden.tree"))
+	actual := sprintTree(d, 0)
 
-	if "1" != block2.Name() {
-		t.Fatalf("mismatched names: expected '%s' got '%s'",
-			"1", block2.Name())
+	if actual != expected {
+		t.Fatalf("mismatched trees:\nactual:\n%s\nexpected:\n%s",
+			actual, expected)
 	}
-	block2Hash := Hash(fileContent[blockSize:])
-	if !bytes.Equal(block2Hash, block2.Hash()) {
-		t.Fatalf("mismatched file hashes: expected '%x' got '%x'",
-			block2Hash, block2.Hash())
-	}
-
 }
