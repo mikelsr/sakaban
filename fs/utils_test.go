@@ -93,7 +93,22 @@ func TestMakeFile(t *testing.T) {
 	}
 }
 
-func TestMakeDir(t *testing.T) {
+func testMakeDir(t *testing.T) (string, string) {
+	// invalid directories
+	// missing
+	if _, err := makeDir("/ _"); err == nil {
+		t.Fatalf("created Dir from invalid direcroty '/ _'")
+	}
+	// no perm
+	if _, err := makeDir(testFailDir); err == nil {
+		t.Fatalf("created Dir from non-readable directory")
+	}
+	// testDir contains the testFailDir subdirectory
+	if _, err := makeDir(testDir); err == nil {
+		t.FailNow()
+	}
+
+	// create and test valid directories
 	dirName := "testmakedir"
 	subDirName := "subdir"
 	fileName := "testfile"
@@ -112,6 +127,32 @@ func TestMakeDir(t *testing.T) {
 	expected := string(readGolden(t, "testmakedir.golden.tree"))
 	actual := sprintTree(d, 0)
 
+	if actual != expected {
+		t.Fatalf("mismatched trees:\nactual:\n%s\nexpected:\n%s",
+			actual, expected)
+		return "", ""
+	}
+	return filepath.Join(testDir, dirName), actual
+}
+
+func TestMakeTree(t *testing.T) {
+	if _, err := MakeTree("/ _"); err == nil {
+		t.Fatalf("created tree from missing dir")
+	}
+
+	os.Mkdir(filepath.Join(testDir, "testmaketree"), permDir)
+	ioutil.WriteFile(filepath.Join(testDir, "testmaketree", "x"),
+		[]byte{}, permFile)
+	if _, err := MakeTree(filepath.Join(testDir, "testmaketree", "x")); err == nil {
+		t.Fatalf("created tree from file")
+	}
+
+	path, expected := testMakeDir(t)
+	d, err := MakeTree(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	actual := sprintTree(d, 0)
 	if actual != expected {
 		t.Fatalf("mismatched trees:\nactual:\n%s\nexpected:\n%s",
 			actual, expected)
