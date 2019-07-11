@@ -48,7 +48,7 @@ func blocksInFile(contentSize int) int {
 	return int(math.Ceil(float64(contentSize) / float64(blockSize)))
 }
 
-// sprintTree is used to recursively print a tree
+// sprintTree is used to recursively print a tree in a readable format
 func sprintTree(t tree.Node, tabLvl int) string {
 	var str strings.Builder
 	tab := strings.Repeat("\t", tabLvl)
@@ -59,6 +59,11 @@ func sprintTree(t tree.Node, tabLvl int) string {
 		str.WriteString(sprintTree(subnode, tabLvl+1))
 	}
 	return str.String()
+}
+
+// MarshalTree creates a JSON from a tree.Node
+func MarshalTree(t tree.Node) []byte {
+	return tree.FromNode(t, MultiHash).JSON()
 }
 
 func makeFile(name string, content []byte) (File, error) {

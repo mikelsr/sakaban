@@ -71,6 +71,32 @@ func TestSprintTree(t *testing.T) {
 	}
 }
 
+func TestMarshalTree(t *testing.T) {
+	d := Dir{
+		name: "x",
+		subnodes: []tree.Node{
+			File{
+				name: "y",
+				subnodes: []tree.Node{
+					Block{
+						index: "0",
+						hash:  Hash([]byte{0x00}),
+					},
+					Block{
+						index: "1",
+						hash:  Hash([]byte{0xFF}),
+					},
+				},
+			},
+		},
+	}
+	expected := readGolden(t, "testmarshaltree.golden.json")
+	actual := MarshalTree(d)
+	if !bytes.Equal(actual, expected) {
+		t.Fatal("mismatched marshalled trees")
+	}
+}
+
 func TestMakeFile(t *testing.T) {
 	// file containing two blocks
 	n := int(float64(blockSize) * 1.5)
@@ -85,15 +111,15 @@ func TestMakeFile(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	expected := string(readGolden(t, "testmakefile.golden.tree"))
-	actual := sprintTree(f, 0)
-	if actual != expected {
+	expected := readGolden(t, "testmakefile.golden.json")
+	actual := tree.FromNode(f, MultiHash).JSON()
+	if !bytes.Equal(actual, expected) {
 		t.Fatalf("mismatched trees:\nactual:\n%s\nexpected:\n%s",
 			actual, expected)
 	}
 }
 
-func testMakeDir(t *testing.T) (string, string) {
+func testMakeDir(t *testing.T) (string, []byte) {
 	// invalid directories
 	// missing
 	if _, err := makeDir("/ _"); err == nil {
@@ -124,13 +150,13 @@ func testMakeDir(t *testing.T) (string, string) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	expected := string(readGolden(t, "testmakedir.golden.tree"))
-	actual := sprintTree(d, 0)
+	expected := readGolden(t, "testmakedir.golden.json")
+	actual := tree.FromNode(d, MultiHash).JSON()
 
-	if actual != expected {
+	if !bytes.Equal(actual, expected) {
 		t.Fatalf("mismatched trees:\nactual:\n%s\nexpected:\n%s",
 			actual, expected)
-		return "", ""
+		return "", []byte{}
 	}
 	return filepath.Join(testDir, dirName), actual
 }
@@ -152,8 +178,8 @@ func TestMakeTree(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	actual := sprintTree(d, 0)
-	if actual != expected {
+	actual := tree.FromNode(d, MultiHash).JSON()
+	if !bytes.Equal(actual, expected) {
 		t.Fatalf("mismatched trees:\nactual:\n%s\nexpected:\n%s",
 			actual, expected)
 	}

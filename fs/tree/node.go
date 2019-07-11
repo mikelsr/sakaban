@@ -18,7 +18,7 @@ type SerializableNode struct {
 	Hash     string             `json:"hash"`
 	IsDir    bool               `json:"isdir"`
 	IsFile   bool               `json:"isfile"`
-	Subnodes []SerializableNode `json:"subnodes"`
+	Subnodes []SerializableNode `json:"subnodes,omitempty"`
 }
 
 // JSON converts the serializeable node into a Json
