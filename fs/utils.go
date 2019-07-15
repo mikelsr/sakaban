@@ -1,7 +1,6 @@
 package fs
 
 import (
-	"crypto/sha256"
 	"fmt"
 	"io/ioutil"
 	"math"
@@ -10,38 +9,9 @@ import (
 	"strconv"
 	"strings"
 
-	mhopts "github.com/multiformats/go-multihash/opts"
 	"gitlab.com/mikelsr/sakaban/fs/tree"
+	"gitlab.com/mikelsr/sakaban/hash"
 )
-
-// Hash creates a sha256 hash of data
-func Hash(data []byte) []byte {
-	hasher := sha256.New()
-	hasher.Write(data)
-	return hasher.Sum(nil)
-}
-
-// MultiHash creates a multihash using the sha256 algorithm,
-// then encodes it in base58
-func MultiHash(sha256Hash []byte) string {
-	preHash := []byte{hashAlg, hashLen}
-	hash := append(preHash, sha256Hash[:]...)
-	mh, err := mhopts.Encode(hashEnc, hash)
-	if err != nil {
-		// TODO
-	}
-	return mh
-}
-
-// UnHash retuns the original hash given a base58-encoded multihash
-func UnHash(hash string) ([]byte, error) {
-	multihash, err := mhopts.Decode(hashEnc, hash)
-	if err != nil {
-		return nil, err
-	}
-	// extract algorithm and key lenght
-	return multihash[2:], nil
-}
 
 // blockNumber calculates the number of block a file is split to
 func blocksInFile(contentSize int) int {
@@ -53,7 +23,7 @@ func sprintTree(t tree.Node, tabLvl int) string {
 	var str strings.Builder
 	tab := strings.Repeat("\t", tabLvl)
 	str.WriteString(
-		fmt.Sprintf("%s%s: %s\n", tab, t.Name(), MultiHash(t.Hash())))
+		fmt.Sprintf("%s%s: %s\n", tab, t.Name(), hash.MultiHash(t.Hash())))
 
 	for _, subnode := range t.Subnodes() {
 		str.WriteString(sprintTree(subnode, tabLvl+1))
@@ -63,7 +33,7 @@ func sprintTree(t tree.Node, tabLvl int) string {
 
 // MarshalTree creates a JSON from a tree.Node
 func MarshalTree(t tree.Node) []byte {
-	return tree.FromNode(t, MultiHash).JSON()
+	return tree.FromNode(t, hash.MultiHash).JSON()
 }
 
 func makeFile(name string, content []byte) (File, error) {
@@ -73,13 +43,13 @@ func makeFile(name string, content []byte) (File, error) {
 	for i := 0; i < n-1; i++ {
 		blocks[i] = Block{
 			index: strconv.Itoa(i),
-			hash:  Hash(content[i*blockSize : (i+1)*blockSize]),
+			hash:  hash.Hash(content[i*blockSize : (i+1)*blockSize]),
 		}
 	}
 	// the size of the last block is variable
 	blocks[n-1] = Block{
 		index: strconv.Itoa(n - 1),
-		hash:  Hash(content[(n-1)*blockSize:]),
+		hash:  hash.Hash(content[(n-1)*blockSize:]),
 	}
 
 	// type []Block needs to be explicitely converted to type []tree.Node
@@ -90,7 +60,7 @@ func makeFile(name string, content []byte) (File, error) {
 
 	f := File{
 		name:     name,
-		hash:     Hash(content),
+		hash:     hash.Hash(content),
 		subnodes: subnodes,
 	}
 	return f, nil

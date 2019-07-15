@@ -2,53 +2,14 @@ package fs
 
 import (
 	"bytes"
-	"crypto/sha256"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"gitlab.com/mikelsr/sakaban/fs/tree"
+	"gitlab.com/mikelsr/sakaban/hash"
 )
-
-func TestHash(t *testing.T) {
-	data := []byte("let's run some tests")
-	expectedHash := sha256.Sum256(data)
-	hash := Hash(data)
-	if !bytes.Equal(hash, expectedHash[:]) {
-		t.Fatalf("mimsmatched hashes '%s' and '%s' (expected))",
-			hash, expectedHash)
-	}
-}
-
-func TestMultiHash(t *testing.T) {
-	data := []byte("let's run some tests")
-	expectedHash := "QmfEJKzW6rH4AfuN1VKuPLeKi4nBnWsFg2qFzf6X4RR4fG"
-	sha256Hash := sha256.Sum256(data)
-	hash := MultiHash(sha256Hash[: /*[32]byte to []byte*/])
-	if hash != expectedHash {
-		t.Fatalf("mimsmatched hashes '%s' and '%s' (expected))",
-			hash, expectedHash)
-	}
-}
-
-func TestUnHash(t *testing.T) {
-	data := []byte("let's run some tests")
-	encodedHash := "QmfEJKzW6rH4AfuN1VKuPLeKi4nBnWsFg2qFzf6X4RR4fG"
-	expectedHash := sha256.Sum256(data)
-	hash, err := UnHash(encodedHash)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !bytes.Equal(hash, expectedHash[:]) {
-		log.Fatalf("expected '%x' and unhashed '%x' hashes do not match",
-			expectedHash, hash)
-	}
-	if _, err = UnHash("_"); err == nil {
-		t.Fatal("unhashed invalid hash")
-	}
-}
 
 func TestBlocksInFile(t *testing.T) {
 	contentSize := 1001 // kB / 500kB per block -> 3 blocks
@@ -61,7 +22,7 @@ func TestBlocksInFile(t *testing.T) {
 
 func TestSprintTree(t *testing.T) {
 	content := []byte{2, 1, 1, 3}
-	x := File{name: "x", hash: Hash(content)}
+	x := File{name: "x", hash: hash.Hash(content)}
 	a := Dir{name: "a", subnodes: []tree.Node{x}}
 	expected := string(readGolden(t, "testsprinttree.golden.tree"))
 	actual := sprintTree(a, 0)
@@ -80,11 +41,11 @@ func TestMarshalTree(t *testing.T) {
 				subnodes: []tree.Node{
 					Block{
 						index: "0",
-						hash:  Hash([]byte{0x00}),
+						hash:  hash.Hash([]byte{0x00}),
 					},
 					Block{
 						index: "1",
-						hash:  Hash([]byte{0xFF}),
+						hash:  hash.Hash([]byte{0xFF}),
 					},
 				},
 			},
@@ -112,7 +73,7 @@ func TestMakeFile(t *testing.T) {
 		t.Fatal(err)
 	}
 	expected := readGolden(t, "testmakefile.golden.json")
-	actual := tree.FromNode(f, MultiHash).JSON()
+	actual := tree.FromNode(f, hash.MultiHash).JSON()
 	if !bytes.Equal(actual, expected) {
 		t.Fatalf("mismatched trees:\nactual:\n%s\nexpected:\n%s",
 			actual, expected)
@@ -151,7 +112,7 @@ func testMakeDir(t *testing.T) (string, []byte) {
 		t.Fatal(err)
 	}
 	expected := readGolden(t, "testmakedir.golden.json")
-	actual := tree.FromNode(d, MultiHash).JSON()
+	actual := tree.FromNode(d, hash.MultiHash).JSON()
 
 	if !bytes.Equal(actual, expected) {
 		t.Fatalf("mismatched trees:\nactual:\n%s\nexpected:\n%s",
@@ -178,7 +139,7 @@ func TestMakeTree(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	actual := tree.FromNode(d, MultiHash).JSON()
+	actual := tree.FromNode(d, hash.MultiHash).JSON()
 	if !bytes.Equal(actual, expected) {
 		t.Fatalf("mismatched trees:\nactual:\n%s\nexpected:\n%s",
 			actual, expected)

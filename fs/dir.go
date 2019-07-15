@@ -2,6 +2,7 @@ package fs
 
 import (
 	"gitlab.com/mikelsr/sakaban/fs/tree"
+	"gitlab.com/mikelsr/sakaban/hash"
 )
 
 // Dir is the implementation of the directory node
@@ -21,7 +22,7 @@ func (d Dir) Hash() []byte {
 	for _, subnode := range d.Subnodes() {
 		raw = append(raw, subnode.Hash()...)
 	}
-	return Hash(raw)
+	return hash.Hash(raw)
 }
 
 // IsDir returns true
